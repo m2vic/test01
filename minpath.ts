@@ -16,7 +16,9 @@ class PriorityQueue<T> {
 }
 
 class WeightedGraph {
-  private adjacencyList: { [key: string]: { vertex: string; weight: number }[] } = {};
+  private adjacencyList: {
+    [key: string]: { vertex: string; weight: number }[];
+  } = {};
 
   addVertex(vertex: string): void {
     if (!this.adjacencyList[vertex]) this.adjacencyList[vertex] = [];
@@ -40,7 +42,7 @@ class WeightedGraph {
     const nodes = new PriorityQueue<string>();
     const distance: { [key: string]: number } = {};
     const previous: { [key: string]: string | null } = {};
-    let smallest: string
+    let smallest: string;
     let path: string[] = [];
 
     for (let vertex in this.adjacencyList) {
@@ -82,44 +84,70 @@ class WeightedGraph {
   }
 }
 
-function minEnergy(start: number, shops: number[], buses: number[], target: number): number {
+function minEnergy(
+  start: number,
+  shops: number[],
+  buses: number[],
+  target: number
+): number {
   const weightedGraph = new WeightedGraph();
+  let result;
+  let arr = [];
+  arr.push(start);
+  arr.push(target);
+  shops.forEach((shop) => {
+    arr.push(shop);
+  });
 
-  for (let i = 0; i <= target; i++) {
-    weightedGraph.addVertex(i.toString());
-  }
+  buses.forEach((bus) => {
+    arr.push(bus);
+  });
 
-  for (let i = 0; i <= target - 1; i++) {
-    weightedGraph.addEdge(i.toString(), (i + 1).toString(), 1);
-  }
+  arr.sort((a, b) => a - b);
+  arr.forEach((nums) => {
+    weightedGraph.addVertex(nums.toString());
+  });
 
-  for (let i = 0; i < buses.length - 1; i++) {
-    if (buses[i] !== buses[i + 1]) {
-      weightedGraph.addEdge(buses[i].toString(), buses[i + 1].toString(), 0);
+  for (let i = 0; i <= buses.length - 1; i++) {
+    for (let j = i + 1; j <= buses.length - 1; j++) {
+      weightedGraph.addEdge(buses[i].toString(), buses[j].toString(), 0);
     }
   }
 
-  if (buses[0] !== buses[buses.length - 1]) {
-    weightedGraph.addEdge(buses[buses.length - 1].toString(), buses[0].toString(), 0);
+  for (let i = 0; i < arr.length - 1; i++) {
+    weightedGraph.addEdge(
+      arr[i].toString(),
+      arr[i + 1].toString(),
+      arr[i + 1] - arr[i]
+    );
   }
 
   let sortShop = shops.sort((a, b) => a - b);
-  let startToShop = weightedGraph.dijkstra(start.toString(), sortShop[0].toString());
+  if (sortShop.length == 0) {
+    result = weightedGraph.dijkstra(start.toString(), target.toString());
+    return result!;
+  }
+
+  let startToShop = weightedGraph.dijkstra(
+    start.toString(),
+    sortShop[0].toString()
+  );
   let lastShopToDestination = weightedGraph.dijkstra(
     sortShop[sortShop.length - 1].toString(),
     target.toString()
   );
 
-  let result = startToShop !+ lastShopToDestination!;
+  result = startToShop! + lastShopToDestination!;
 
   if (shops.length > 1) {
     for (let i = 0; i < shops.length - 1; i++) {
-      let shopToNextShop = weightedGraph.dijkstra(sortShop[i].toString(), sortShop[i + 1].toString());
+      let shopToNextShop = weightedGraph.dijkstra(
+        sortShop[i].toString(),
+        sortShop[i + 1].toString()
+      );
       result += shopToNextShop!;
     }
   }
 
   return result;
 }
-
-
